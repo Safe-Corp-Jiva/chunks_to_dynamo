@@ -1,10 +1,12 @@
 import os
 import random
 import uuid
+import json
+import base64
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 
-
+# GraphQL API setup
 api_url = 'https://bs64wev465c6dhsrb2k3bftfii.appsync-api.us-east-1.amazonaws.com/graphql'
 api_key = 'da2-me7ie5gq4zdjzmhwiuxkg6hmbi'
 
@@ -14,47 +16,59 @@ transport = RequestsHTTPTransport(
 )
 client = Client(transport=transport, fetch_schema_from_transport=True)
 
-
+# GraphQL Mutation for creating chunks
 mutation = gql("""
-    mutation CreateChunk($id: ID!, $sentiment: Float, $text: String, $callId: ID!) {
-        createChunk(input: {id: $id, sentiment: $sentiment, text: $text, callId: $callId}) {
+    mutation CreateChunk($id: ID!, $sentiment: Sentiment, $content: ChunkContentInput, $callId: ID!) {
+        createChunk(input: {id: $id, sentiment: $sentiment, content: $content, callId: $callId}) {
             id
             sentiment
-            text
+            content {
+                role
+                text
+            }
             callId
         }
     }
 """)
 
-def generate_data():
+# Function to process segment data into the required format
+def chunkify(data):
+    segments = data.get('Segments', [])
+    def process_segment(segment):
+        if segment.get('Transcript'):
+            content = segment['Transcript']
+            return {
+                'callId': data.get('ContactId'),
+                'content': {
+                    'role': content.get('ParticipantRole'),
+                    'text': content.get('Content')
+                },
+                'sentiment': content.get('Sentiment')
+            }
+    return [process_segment(seg) for seg in segments if seg.get('Transcript')]
 
-    return {
-        'callId': str(uuid.uuid4()), 
-        'text': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...', 
-        'sentiment': random.uniform(0, 1) 
-    }
-
-def chunk_data(data, chunk_size):
-
-    for i in range(0, len(data), chunk_size):
-        yield data[i:i + chunk_size]
-
+# Function to send chunk data to the API
 def send_to_amplify(chunks):
-
     try:
         for chunk in chunks:
-            for item in chunk:
-                response = client.execute(mutation, variable_values={
-                    'id': str(uuid.uuid4()),  
-                    'sentiment': item['sentiment'],
-                    'text': item['text'], 
-                    'callId': item['callId']  
-                })
-                print("Data sent to Amplify:", response)
+            response = client.execute(mutation, variable_values={
+                'id': str(uuid.uuid4()),
+                'sentiment': chunk['sentiment'],
+                'content': chunk['content'],
+                'callId': chunk['callId']
+            })
+            print("Data sent to Amplify:", response)
     except Exception as e:
         print(f"Failed to send data: {e}")
 
-if __name__ == "__main__":
-    data_stream = [generate_data() for _ in range(3)]  
-    chunks = list(chunk_data(data_stream, 3)) 
-    send_to_amplify(chunks)  
+# AWS Lambda handler function
+def handler(event, context):
+    data = json.loads(base64.b64decode(event[0]['data']).decode('utf-8'))
+    event_type = data.get('EventType')
+    if event_type == 'STARTED':
+        print('Call started')
+    elif event_type == 'SEGMENTS':
+        chunks = chunkify(data)
+        send_to_amplify(chunks)
+    elif event_type == 'COMPLETED':
+        print('Call completed')
