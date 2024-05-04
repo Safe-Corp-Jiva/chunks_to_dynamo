@@ -1,0 +1,12 @@
+.git/
+.gitignore
+README.md
+LICENSE
+
+.env
+.venv/
+venv/
+**/*__pycache__/
+Dockerfile
+event.json
+local_test.py
