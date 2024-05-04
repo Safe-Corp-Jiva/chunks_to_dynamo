@@ -1,4 +1,15 @@
-import json
+# `api.py`
+
+# Manages AppSync operations (GraphQL API Calls)
+
+# Requires API_URL and API_KEY to be set in the environment
+# e.g.
+# export API_URL=https://<api-id>.appsync-api.<region>.amazonaws.com/graphql
+# export API_KEY=<api-key>
+
+# Alejandro Arouesty, Samuel Acevedo, Joaquín Badillo
+# 2024-05-04
+
 import logging
 import os
 
