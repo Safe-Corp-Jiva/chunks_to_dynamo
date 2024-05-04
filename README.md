@@ -23,9 +23,9 @@ python -i lambda_handler.py
 ```
 
 ## Using with Docker
-Build the image (we will run it in the bg for convenience)
+Build the image. We will run it in the bg for convenience (thus we are sending the output to /dev/null)
 ```bash
-docker build -t jiva/chunks . &
+docker build -t jiva/chunks . >/dev/null 2>&1 &
 ```
 
 In the meantime we will create a `.env` file (you can also pass the environment variables directly if you want to)
