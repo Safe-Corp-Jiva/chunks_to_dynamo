@@ -23,7 +23,7 @@ python -i lambda_handler.py
 ```
 
 ## Using with Docker
-Build the image. We will run it in the bg for convenience (thus we are sending the output to /dev/null)
+Build the image. We will run it in the bg for convenience (thus we are sending the output to /dev/null; beware, /dev/null doesn't exist in Windows)
 ```bash
 docker build -t jiva/chunks . >/dev/null 2>&1 &
 ```
