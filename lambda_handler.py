@@ -1,3 +1,15 @@
+# Entrypoint
+
+# This file contains is the main entrypoint for the lambda function (the handler).
+# It receives events from a Contact Lens Kinesis Stream through an Event Brdige Pipe.
+# Depending on the `EventType` of the event, it will call different functions to process the data.
+# The `handleStart` function will create a call in the database.
+# The `handleSegments` function will process the segments of the call and create chunks in the database.
+# The `handleCompleted` function will mark the call as completed in the database (pending).
+
+# Alejandro Arouesty, Samuel Acevedo, Joaquín Badillo
+# 2024-05-04
+
 import base64
 import json
 import logging
