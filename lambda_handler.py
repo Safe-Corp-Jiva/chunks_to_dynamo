@@ -1,49 +1,42 @@
-import uuid
 import base64
 import json
-from gql import gql, Client
-from gql.transport.requests import RequestsHTTPTransport
+import logging
+
+import api
 from events import chunkify
 
-# GraphQL client
-api_url = 'https://bs64wev465c6dhsrb2k3bftfii.appsync-api.us-east-1.amazonaws.com/graphql'
-api_key = 'da2-me7ie5gq4zdjzmhwiuxkg6hmbi'
-transport = RequestsHTTPTransport(url=api_url, headers={'x-api-key': api_key})
-client = Client(transport=transport, fetch_schema_from_transport=True)
+logger = logging.getLogger()
 
-# GraphQL mutation
-mutation = gql("""
-    mutation CreateChunk($id: ID!, $sentiment: Sentiment, $content: ChunkContentInput, $callId: ID!) {
-        createChunk(input: {id: $id, sentiment: $sentiment, content: $content, callId: $callId}) {
-            id
-            sentiment
-            content {
-                role
-                text
-            }
-            callId
-        }
-    }
-""")
+def handleStart(data):
+  res = api.create_call(data.get('ContactId'))
+  if res is None:
+    logger.error('Failed to create call')
 
-def send_to_amplify(chunks):
-    for chunk in chunks:
-        response = client.execute(mutation, variable_values={
-            'id': str(uuid.uuid4()),
-            'sentiment': chunk['sentiment'],
-            'content': chunk['content'],
-            'callId': chunk['callId']
-        })
-        print("Data sent to Amplify:", response)
+def handleSegments(data):
+  chunks = chunkify(data)
+  for chunk in chunks:
+    res = api.create_chunk(
+      chunk['callId'],
+      chunk.get('sentiment', 'UNDEFINED'), 
+      chunk['content'],
+    )
+
+    if res is None:
+      logger.error('Failed to send data')
+
+def handleCompleted(data):
+  pass
 
 def handler(event, context):
-    data = json.loads(base64.b64decode(event[0]['data']).decode('utf-8'))
+  for record in event:
+    payload = base64.b64decode(record['data']).decode('utf-8')
+    data = json.loads(payload)
+    print(data)
     event_type = data.get('EventType')
-    if event_type == 'STARTED':
-        print('Call started')
-    elif event_type == 'SEGMENTS':
-        chunks = chunkify(data)
-        send_to_amplify(chunks)
-    elif event_type == 'COMPLETED':
-        print('Call completed')
 
+    if event_type == 'STARTED':
+      handleStart(data)
+    elif event_type == 'SEGMENTS':
+      handleSegments(data)
+    elif event_type == 'COMPLETED':
+      handleCompleted(data)
