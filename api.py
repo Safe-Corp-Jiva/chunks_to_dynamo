@@ -44,20 +44,36 @@ _create_call_mut = gql("""
       input: {id: $id, callMetricsId: $callMetricsId, status: STARTED}
     ) {
       id
+      createdAt
+      status
+      updatedAt
+      callMetricsId
+      callCallerId
+      metrics {
+        id
+        length
+        waittime
+        createdAt
+        updatedAt
+      }
     }
   }"""
 )
 
 _create_chunk_mut = gql("""
   mutation CreateChunk($sentiment: Sentiment, $content: ChunkContentInput, $callId: ID!) {
-    createChunk(input: {sentiment: $sentiment, content: $content, callId: $callId}) {
+    createChunk(
+      input: {sentiment: $sentiment, content: $content, callId: $callId}
+    ) {
       id
-      sentiment
       content {
         role
         text
       }
       callId
+      sentiment
+      createdAt
+      updatedAt
     }
   }"""
 )
