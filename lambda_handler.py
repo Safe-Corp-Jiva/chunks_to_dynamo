@@ -8,7 +8,7 @@
 # The `handleCompleted` function will mark the call as completed in the database (pending).
 
 # Alejandro Arouesty, Samuel Acevedo, Joaquín Badillo
-# 2024-05-04
+# 2024-05-16
 
 import base64
 import json
@@ -20,7 +20,7 @@ from events import chunkify
 logger = logging.getLogger()
 
 def handleStart(data):
-  res = api.create_call(data.get('ContactId'))
+  res = api.create_call(data.get('ContactId'), data.get('InstanceId'))
   if res is None:
     logger.error('Failed to create call')
 
@@ -37,7 +37,9 @@ def handleSegments(data):
       logger.error('Failed to send data')
 
 def handleCompleted(data):
-  pass
+  res = api.update_call(data.get('ContactId'), 'COMPLETED')
+  if res is None:
+    logger.error('Failed to update call status')
 
 def handler(event, context):
   for record in event:
