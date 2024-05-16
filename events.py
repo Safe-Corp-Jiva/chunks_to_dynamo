@@ -18,14 +18,4 @@ def chunkify(data):
         },
         'sentiment': content.get('Sentiment')
       }
-    elif segment.get('Utterance'):
-      content = segment['Utterance']
-      return {
-        'callId': data.get('ContactId'),
-        'content': {
-          'role': content.get('ParticipantRole'),
-          'text': content.get('PartialContent')
-        },
-        'sentiment': content.get('Sentiment')
-      }
-  return [process_segment(seg) for seg in segments if seg.get('Transcript') or seg.get('Utterance')]
+  return [process_segment(seg) for seg in segments if seg.get('Transcript')]

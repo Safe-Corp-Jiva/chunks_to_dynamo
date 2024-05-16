@@ -42,10 +42,17 @@ def handleCompleted(data):
     logger.error('Failed to update call status')
 
 def handler(event, context):
-  for record in event:
-    payload = base64.b64decode(record['data']).decode('utf-8')
+  print("Got event:")
+  print(event, end="\n\n")
+
+  records = event.get('Records', [])
+  for record in records:
+    payload = record.get('kinesis', dict()).get('data')
+    if payload is None:
+      logger.error('No kinesis payload')
+      continue
+    payload = base64.b64decode(payload).decode('utf-8')
     data = json.loads(payload)
-    print(data)
     event_type = data.get('EventType')
 
     if event_type == 'STARTED':

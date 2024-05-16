@@ -6,7 +6,7 @@
 # e.g.
 # export API_URL=https://<api-id>.appsync-api.<region>.amazonaws.com/graphql
 # export API_KEY=<api-key>
-# export AWS_ACCESS_KEY=<access-key>
+# export AWS_ACCESS_KEY_ID=<access-key>
 # export AWS_SECRET_ACCESS_KEY=<secret-access-key>
 
 # Alejandro Arouesty, Samuel Acevedo, Joaquín Badillo
@@ -32,11 +32,8 @@ transport = RequestsHTTPTransport(
 
 client = Client(transport=transport, fetch_schema_from_transport=True)
 
-connect = boto3.client(
+connectClient = boto3.client(
   'connect',
-  region_name='us-east-1',
-  aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-  aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
 )
 
 # Mutations & Queries
@@ -138,12 +135,13 @@ def _create_metrics():
     return None
 
 def create_call(contactId, instanceId):
+  print(f"CREATING CALL\nContactId: {contactId}\nInstanceId: {instanceId}")
   try:
     metricsId = _create_metrics()
     if metricsId is None:
       return None
-    
-    contactData = connect.describe_contact(
+
+    contactData = connectClient.describe_contact(
       InstanceId=instanceId,
       ContactId=contactId
     )
@@ -176,9 +174,13 @@ def update_call(id, status):
     return None
 
 def create_chunk(contactId, sentiment, content):
+  feeling = "UNDEFINED"
+  if sentiment == "POSITIVE" or sentiment == "NEGATIVE" or sentiment == "NEUTRAL":
+    feeling = sentiment
+
   try:
     response = client.execute(_create_chunk_mut, variable_values={
-      'sentiment': sentiment,
+      'sentiment': feeling,
       'content': content,
       'callId': contactId
     })
