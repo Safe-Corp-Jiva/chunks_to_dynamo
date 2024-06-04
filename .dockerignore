@@ -1,0 +1,25 @@
+# Ignore irrelevant files for execution
+# Joaquín Badillo
+# 2024-05-04
+
+# Git/GitHub related files
+.git/
+.gitignore
+README.md
+LICENSE
+
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+**/*__pycache__/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Tests
+event.json
+local_test.py
