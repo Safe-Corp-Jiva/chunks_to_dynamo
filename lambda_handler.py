@@ -37,7 +37,7 @@ def handleSegments(data):
       logger.error('Failed to send data')
 
 def handleCompleted(data):
-  res = api.update_call(data.get('ContactId'), 'COMPLETED')
+  res = api.update_call(data.get('ContactId'), 'FINALIZED')
   if res is None:
     logger.error('Failed to update call status')
 
