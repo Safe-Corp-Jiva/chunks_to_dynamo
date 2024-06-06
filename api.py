@@ -53,25 +53,39 @@ _create_call_mut = gql("""
       id
       createdAt
       status
+      help
+      result
       updatedAt
+      transcript {
+        key
+        bucketId
+      }
+      audio {
+        key
+        bucketId
+      }
+      agent {
+        id
+        username
+        lastName
+        firstName
+        email
+      }
+      queue {
+        id
+        name
+      }
+      topic {
+        id
+        name
+        count
+      }
       metrics {
         id
         length
         waittime
-        createdAt
-        updatedAt
       }
-      agent {
-        username
-      }
-      queue {
-        name
-      }
-      caller {
-        id
-        name
-      }
-    }
+  }
   }"""
 )
 
@@ -83,22 +97,30 @@ _update_call_mut = gql("""
       id
       createdAt
       status
+      help
+      result
       updatedAt
+      callCallerId
+      agent {
+        id
+        username
+        lastName
+        firstName
+        email
+      }
+      queue {
+        id
+        name
+      }
+      topic {
+        id
+        name
+        count
+      }
       metrics {
         id
         length
         waittime
-        createdAt
-        updatedAt
-      }
-      agent {
-        username
-      }
-      queue {
-        name
-      }
-      caller {
-        id
       }
     }
   }"""
