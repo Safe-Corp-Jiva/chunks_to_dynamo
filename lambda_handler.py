@@ -10,9 +10,7 @@
 # Alejandro Arouesty, Samuel Acevedo, Joaquín Badillo
 # 2024-05-16
 
-import base64
-import json
-import logging
+import base64, json, logging, os, requests, threading
 
 import api
 from events import chunkify
@@ -36,7 +34,13 @@ def handleSegments(data):
     if res is None:
       logger.error('Failed to send data')
 
+def fireAndForget(data):
+  requests.post(url=os.environ.get("PROCESS_RESULTS"), json={
+    "callId": data.get('ContactId'),
+  })
+
 def handleCompleted(data):
+  threading.Thread(target=fireAndForget, args=(data,)).start()
   res = api.update_call(data.get('ContactId'), 'FINALIZED')
   if res is None:
     logger.error('Failed to update call status')
